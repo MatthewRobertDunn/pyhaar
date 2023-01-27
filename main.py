@@ -28,7 +28,7 @@ def get_input_data(filename):
 
 
 #load our input file
-input = get_input_data("d:\\tempstuff\\bee.flac")
+input = get_input_data("d:\\tempstuff\\coke.flac")
 
 #Remember how long it is so we can compare after compression
 originalLength = len(input.tobytes())
@@ -45,10 +45,10 @@ for x in range(1,len(stuff)):
     stuff[x] = np.multiply(stuff[x], 2**x)
     
 #quantize the detail coefficients
-stuff[-5] = np.around(stuff[-5], decimals=2)
-stuff[-4] = np.around(stuff[-4], decimals=2)
-stuff[-3] = np.around(stuff[-3], decimals=2)
-stuff[-2] = np.around(stuff[-2], decimals=2)
+stuff[-5] = np.around(stuff[-5], decimals=1)
+stuff[-4] = np.around(stuff[-4], decimals=1)
+stuff[-3] = np.around(stuff[-3], decimals=1)
+stuff[-2] = np.around(stuff[-2], decimals=1)
 
 
 

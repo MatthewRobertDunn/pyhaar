@@ -8,10 +8,13 @@ import zlib
 
 
 #Number of PCM samples we fit into a block
-BLOCK_SIZE = 65536
+BLOCK_SIZE = 2048
 
 #The wavelet we are using
-WAVELET = 'db7'
+WAVELET = 'haar'
+LEVEL = 4
+PATHS = ['aaaa', 'aaad', 'aada', 'aadd', 'adaa', 'adad', 'adda', 'addd', 'daaa', 'daad', 'dada', 'dadd', 'ddaa', 'ddad', 'ddda', 'dddd']
+
 
 class Encoder:
     def __init__(self, fileName) -> None:
@@ -52,24 +55,45 @@ class Encoder:
             return input
 
     def dwt_dec(self,input):
-        return pywt.wavedec(input, WAVELET, level=4)
+        wp = pywt.WaveletPacket(data=input, wavelet=WAVELET)
+        return [node.data for node in wp.get_level(LEVEL, 'natural')]
 
     def quantize(self, input):
         #quantize the detail coefficients
         #coefficients are ordered into least to most detail
         #Interestingly as each detail coefficient is smaller than the last
         #this applies progressively more quantization
-        input[1] = np.around(input[1], decimals=3).astype(np.float16)
+        bands = len(input)
+        #for i in range(0, bands):
+            #input[i] = np.around(input[i], decimals=0).astype(np.float16)
+        #input[0] = np.around(input[0], decimals=1).astype(np.float16)
+        #print(f"{input[2].var()} - {input[3].var()}")
+
+        foo = int((input[2].var() - input[3].var()) * 1000);
+        #print(foo)
+
+        input[0] = np.around(input[0], decimals=2).astype(np.float16)
+        input[1] = np.around(input[1], decimals=2).astype(np.float16)
         input[2] = np.around(input[2], decimals=2).astype(np.float16)
-        input[3] = np.around(input[3], decimals=1).astype(np.float16)
-        #input[4] = np.around(input[4], decimals=0).astype(np.float16)
-        input[4] = np.zeros(len(input[4]),dtype=np.float16)
+        input[3] = np.around(input[3], decimals=2).astype(np.float16)
+        input[4] = np.around(input[4], decimals=2).astype(np.float16)
+        input[5] = np.around(input[5], decimals=2).astype(np.float16)
+        input[6] = np.around(input[6], decimals=2).astype(np.float16)
+        input[7] = np.around(input[7], decimals=2).astype(np.float16)
+        input[8] = np.around(input[8], decimals=-100).astype(np.float16)
+        input[9] = np.around(input[9], decimals=-100).astype(np.float16)
+        input[10] = np.around(input[10], decimals=-100).astype(np.float16)
+        input[11] = np.around(input[11], decimals=-100).astype(np.float16)
+        input[12] = np.around(input[12], decimals=-100).astype(np.float16)
+        input[13] = np.around(input[13], decimals=-100).astype(np.float16)
+        input[14] = np.around(input[14], decimals=-100).astype(np.float16)
+        input[15] = np.around(input[15], decimals=-100).astype(np.float16)
         for i in range(len(input)):
             input[i] += 0
-
+        
     def Compress(self, input):
         byte_data = np.hstack(np.hstack(input)).astype(np.float16).tobytes()
-        result = zlib.compress(byte_data, level=8)
+        result = zlib.compress(byte_data, level=9)
         print(f"{len(result)} / {len(byte_data)} -- {len(result) / len(byte_data)}")
 
 
@@ -81,8 +105,10 @@ class Decoder:
 
 
     def dwt_rec(self,input):
-        return pywt.waverec(input, WAVELET)
-
+        wp = pywt.WaveletPacket(data=None, wavelet=WAVELET)
+        for i in range(0,len(PATHS)):
+            wp[PATHS[i]] = input[i]
+        return wp.reconstruct(update=False)
 
 
 h = Encoder("d:\\tempstuff\\coke.flac");
@@ -100,4 +126,4 @@ with sf.SoundFile('d:\\tempstuff\\db7.flac','w',44100, format='flac', channels=2
         r = d.decode_bock(block)
         data = np.ascontiguousarray((np.transpose(r)))
         os.write(data) #annoying I have to do this transpose
-        out.write(data)
+        #out.write(data)
